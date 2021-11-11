@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Use `rust:bullseye-slim` as base image for docker container builder. ([#578](https://github.com/getsentry/symbolicator/pull/578))
+- Use `debian:bullseye-slim` as base image for docker container runner. ([#578](https://github.com/getsentry/symbolicator/pull/578))
+
 ## 0.4.0
 
 ### Features
