@@ -12,19 +12,32 @@ clean:
 	rm -rf .venv
 .PHONY: clean
 
+# Builds
+
+build:
+	cargo build
+.PHONY: build
+
+release:
+	cargo build --release --locked
+	objcopy --only-keep-debug target/release/symbolicator{,.debug}
+	objcopy --strip-debug --strip-unneeded target/release/symbolicator
+	objcopy --add-gnu-debuglink target/release/symbolicator{.debug,}
+.PHONY: release
+
 # Tests
 
 test: test-rust test-integration
 .PHONY: test
 
 test-rust:
-	cargo test --all --all-features
+	cargo test --workspace --all-features --locked
 .PHONY: test-rust
 
 test-integration: .venv/bin/python
-	.venv/bin/pip install -U pytest pytest-rerunfailures pytest-localserver requests pytest-xdist pytest-icdiff boto3
-	cargo build
-	@.venv/bin/pytest tests --reruns 5 -n12 -vv
+	.venv/bin/pip install -U pytest pytest-localserver requests pytest-xdist pytest-icdiff boto3
+	cargo build --locked
+	@.venv/bin/pytest tests/integration -n12 -vv
 .PHONY: test-integration
 
 # Documentation
@@ -73,7 +86,7 @@ lint-python: .venv/bin/python
 
 lint-rust:
 	@rustup component add clippy --toolchain stable 2> /dev/null
-	cargo +stable clippy --all-features --all --tests --examples -- -D clippy::all
+	cargo +stable clippy --all-features --workspace --tests --examples
 .PHONY: lint-rust
 
 # Formatting
@@ -95,4 +108,4 @@ format-python: .venv/bin/python
 
 .venv/bin/python: Makefile
 	rm -rf .venv
-	virtualenv -p $$SYMBOLICATOR_PYTHON_VERSION .venv
+	$$SYMBOLICATOR_PYTHON_VERSION -m venv .venv

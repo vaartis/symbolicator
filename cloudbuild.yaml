@@ -2,27 +2,24 @@ steps:
   - name: "gcr.io/cloud-builders/docker"
     entrypoint: "bash"
     args:
-      [
-        "-c",
-        "docker pull us.gcr.io/$PROJECT_ID/symbolicator:latest || true"
-      ]
+      ["-c", "docker pull us.gcr.io/$PROJECT_ID/symbolicator:nightly || true"]
 
   # Pull the image with the first build stage
   - name: "gcr.io/cloud-builders/docker"
     entrypoint: "bash"
     args:
-      [
-        "-c",
-        "docker pull us.gcr.io/$PROJECT_ID/symbolicator:builder || true"
-      ]
+      ["-c", "docker pull us.gcr.io/$PROJECT_ID/symbolicator:builder || true"]
 
   - name: "gcr.io/cloud-builders/docker"
     args:
       [
         "build",
-        "--target", "symbolicator-build",
-        "-t", "us.gcr.io/$PROJECT_ID/symbolicator:builder",
-        "--cache-from", "us.gcr.io/$PROJECT_ID/symbolicator:builder",
+        "--target",
+        "symbolicator-build",
+        "-t",
+        "us.gcr.io/$PROJECT_ID/symbolicator:builder",
+        "--cache-from",
+        "us.gcr.io/$PROJECT_ID/symbolicator:builder",
         ".",
       ]
 
@@ -30,27 +27,43 @@ steps:
     args:
       [
         "build",
-        "-t", "us.gcr.io/$PROJECT_ID/symbolicator:latest",
-        "-t", "us.gcr.io/$PROJECT_ID/symbolicator:$COMMIT_SHA",
-        "--cache-from", "us.gcr.io/$PROJECT_ID/symbolicator:builder",
-        "--cache-from", "us.gcr.io/$PROJECT_ID/symbolicator:latest",
+        "-t",
+        "us.gcr.io/$PROJECT_ID/symbolicator:nightly",
+        "-t",
+        "us.gcr.io/$PROJECT_ID/symbolicator:$COMMIT_SHA",
+        "--cache-from",
+        "us.gcr.io/$PROJECT_ID/symbolicator:builder",
+        "--cache-from",
+        "us.gcr.io/$PROJECT_ID/symbolicator:nightly",
         ".",
       ]
 
-  - name: "us.gcr.io/$PROJECT_ID/symbolicator:latest"
+  - name: "us.gcr.io/$PROJECT_ID/symbolicator:nightly"
     args: ['--version']
     id: "smoke test 1"
 
-  - name: "us.gcr.io/$PROJECT_ID/symbolicator:latest"
+  - name: "us.gcr.io/$PROJECT_ID/symbolicator:nightly"
     args: ['--help']
     id: "smoke test 2"
 
-  # Only tag "latest" when on master
+  # Only tag "nightly" when on master
   - name: 'gcr.io/cloud-builders/docker'
+    secretEnv: ['DOCKER_PASSWORD']
     entrypoint: 'bash'
     args:
+    - '-e'
     - '-c'
-    - '[[ "$BRANCH_NAME" == "master" ]] && docker push us.gcr.io/$PROJECT_ID/symbolicator:latest || true'
+    - |
+      # Only push to Docker Hub from master
+      [ "$BRANCH_NAME" != "master" ] && exit 0
+      docker push us.gcr.io/$PROJECT_ID/symbolicator:nightly
+      echo "$$DOCKER_PASSWORD" | docker login --username=sentrybuilder --password-stdin
+      docker tag us.gcr.io/$PROJECT_ID/symbolicator:$COMMIT_SHA getsentry/symbolicator:$SHORT_SHA
+      docker push getsentry/symbolicator:$SHORT_SHA
+      docker tag us.gcr.io/$PROJECT_ID/symbolicator:$COMMIT_SHA getsentry/symbolicator:$COMMIT_SHA
+      docker push getsentry/symbolicator:$COMMIT_SHA
+      docker tag us.gcr.io/$PROJECT_ID/symbolicator:$COMMIT_SHA getsentry/symbolicator:nightly
+      docker push getsentry/symbolicator:nightly
 
 images:
   [
@@ -60,4 +73,13 @@ images:
 timeout: 3600s
 options:
   # Run on bigger machines
-  machineType: 'N1_HIGHCPU_8'
+  machineType: "N1_HIGHCPU_8"
+secrets:
+- kmsKeyName: projects/sentryio/locations/global/keyRings/service-credentials/cryptoKeys/cloudbuild
+  secretEnv:
+    # This is a personal access token for the sentrybuilder account, encrypted using the
+    # short guide at http://bit.ly/2Pg6uw9
+    DOCKER_PASSWORD: |
+      CiQAE8gN7y3OMxn+a1kofmK4Bi8jQZtdRFj2lYYwaZHVeIIBUzMSTQA9tvn8XCv2vqj6u8CHoeSP
+      TVW9pLvSCorKoeNtOp0eb+6V1yNJW/+JC07DNO1KLbTbodbuza6jKJHU5xeAJ4kGQI78UY5Vu1Gp
+      QcMK
