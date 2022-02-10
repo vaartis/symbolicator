@@ -1,6 +1,7 @@
 ---
 source: crates/symbolicator/src/endpoints/minidump.rs
 expression: response
+
 ---
 status: completed
 timestamp: 1521713273
@@ -23,7 +24,7 @@ stacktraces:
       ecx: "0x10ff670"
       edi: "0x13bfd78"
       edx: "0x7"
-      eflags: "0x10246"
+      efl: "0x10246"
       eip: "0x2a2a3d"
       esi: "0x759c6314"
       esp: "0x10ff644"
@@ -45,36 +46,46 @@ stacktraces:
         trust: scan
       - status: missing
         original_index: 3
+        instruction_addr: "0x70850000"
+        package: "C:\\Windows\\System32\\dbghelp.dll"
+        trust: scan
+      - status: missing
+        original_index: 4
         instruction_addr: "0x70b7ae40"
         package: "C:\\Windows\\System32\\dbgcore.dll"
         trust: scan
       - status: missing
-        original_index: 4
+        original_index: 5
+        instruction_addr: "0x75810000"
+        package: "C:\\Windows\\System32\\rpcrt4.dll"
+        trust: scan
+      - status: missing
+        original_index: 6
         instruction_addr: "0x7584e9c0"
         package: "C:\\Windows\\System32\\rpcrt4.dll"
         trust: scan
       - status: missing
-        original_index: 5
+        original_index: 7
         instruction_addr: "0x2a3435"
         package: "C:\\projects\\breakpad-tools\\windows\\Release\\crash.exe"
         trust: scan
       - status: missing
-        original_index: 6
+        original_index: 8
         instruction_addr: "0x2a2d97"
         package: "C:\\projects\\breakpad-tools\\windows\\Release\\crash.exe"
         trust: scan
       - status: missing
-        original_index: 7
+        original_index: 9
         instruction_addr: "0x750662c4"
         package: "C:\\Windows\\System32\\kernel32.dll"
         trust: fp
       - status: missing
-        original_index: 8
+        original_index: 10
         instruction_addr: "0x771d0f79"
         package: "C:\\Windows\\System32\\ntdll.dll"
         trust: fp
       - status: missing
-        original_index: 9
+        original_index: 11
         instruction_addr: "0x771d0f44"
         package: "C:\\Windows\\System32\\ntdll.dll"
         trust: fp
@@ -87,7 +98,7 @@ stacktraces:
       ecx: "0x0"
       edi: "0x13b4af0"
       edx: "0x0"
-      eflags: "0x216"
+      efl: "0x216"
       eip: "0x771e016c"
       esi: "0x13b4930"
       esp: "0x159f900"
@@ -121,7 +132,7 @@ stacktraces:
       ecx: "0x0"
       edi: "0x13b7c28"
       edx: "0x0"
-      eflags: "0x202"
+      efl: "0x202"
       eip: "0x771e016c"
       esi: "0x13b7a68"
       esp: "0x169f9f4"
@@ -155,7 +166,7 @@ stacktraces:
       ecx: "0x0"
       edi: "0x17b1a90"
       edx: "0x0"
-      eflags: "0x206"
+      efl: "0x206"
       eip: "0x771df3dc"
       esi: "0x2cc"
       esp: "0x179f2ac"
@@ -181,8 +192,8 @@ modules:
     debug_file: "C:\\projects\\breakpad-tools\\windows\\Release\\crash.pdb"
     image_addr: "0x2a0000"
     image_size: 36864
-  - debug_status: unused
-    unwind_status: unused
+  - debug_status: missing
+    unwind_status: missing
     features:
       has_debug_info: false
       has_unwind_info: false
@@ -421,3 +432,4 @@ modules:
     debug_file: wntdll.pdb
     image_addr: "0x77170000"
     image_size: 1585152
+
